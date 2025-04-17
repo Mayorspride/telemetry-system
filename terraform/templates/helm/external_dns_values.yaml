@@ -1,0 +1,290 @@
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry and imagePullSecrets
+##
+# global:
+#   imageRegistry: myRegistryName
+#   imagePullSecrets:
+#     - myRegistryKeySecretName
+
+provider: aws
+
+## AWS configuration to be set via arguments/env. variables
+##
+aws:
+  ## AWS credentials
+  ##
+  credentials:
+%{ if aws_access_key_id != "" }
+    secretKey: ${aws_secret_access_key}
+    accessKey: ${aws_access_key_id}
+%{ else }
+    secretKey: ""
+    accessKey: ""
+%{ endif }
+    ## pre external-dns 0.5.9 home dir should be `/root/.aws`
+    ##
+    mountPath: "/.aws"
+    ## Use an existing secret with key "credentials" defined.
+    ## This ignores aws.credentials.secretKey, and aws.credentials.accessKey
+    ##
+    # secretName:
+
+  ## AWS region
+  ##
+  region: "us-east-1"
+  ## Zone Filter. Available values are: public, private
+  ##
+  zoneType: "public"
+  ## AWS Role to assume
+  ##
+  assumeRoleArn: ""
+  ## Maximum number of retries for AWS API calls before giving up.
+  ##
+  apiRetries: 3
+  ## Maximum number of changes that will be applied in each batch
+  ##
+  batchChangeSize: 1000
+  ## AWS Zone tags
+  ##
+  zoneTags: []
+  ## Enable AWS Prefer CNAME. Available values are: true, false
+  ##
+  preferCNAME: ""
+  ## Enable AWS evaluation of target health. Available values are: true, false
+  ##
+  evaluateTargetHealth: ""
+
+## Limit possible target zones by domain suffixes (optional)
+##
+domainFilters: [${domain_filters}]
+## Exclude subdomains (optional)
+##
+excludeDomains: []
+## Limit possible target zones by zone id (optional)
+##
+zoneIdFilters: []
+## Filter sources managed by external-dns via annotation using label selector semantics (optional)
+##
+annotationFilter: ""
+## When enabled, prints DNS record changes rather than actually performing them
+##
+dryRun: false
+## When enabled, triggers run loop on create/update/delete events (optional, in addition of regular interval)
+##
+triggerLoopOnEvent: false
+## Adjust the interval for DNS updates
+##
+interval: "1m"
+## Verbosity of the ExternalDNS logs. Available values are:
+## - panic, debug, info, warn, error, fatal
+##
+logLevel: info
+## Formats of the ExternalDNS logs. Available values are:
+## - text, json
+##
+logFormat: json
+## Modify how DNS records are synchronized between sources and providers (options: sync, upsert-only)
+##
+policy: ${sync_policy}
+## Registry Type. Available types are: txt, noop
+## ref: https://github.com/kubernetes-sigs/external-dns/blob/master/docs/proposal/registry.md
+##
+registry: "txt"
+## TXT Registry Identifier
+##
+txtOwnerId: ${hosted_zone_id}
+## Prefix to create a TXT record with a name following the pattern prefix.<CNAME record>
+##
+# txtPrefix: ""
+
+## Extra Arguments to passed to external-dns
+##
+extraArgs: {}
+## Extra env. variable to set on external-dns container.
+##
+## extraEnv:
+## - name: VARNAME1
+##   value: value1
+## - name: VARNAME2
+##   valueFrom:
+##     secretKeyRef:
+##       name: existing-secret
+##       key: varname2-key
+extraEnv: []
+
+## Replica count
+##
+replicas: 1
+
+## Pod affinity preset
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+## Allowed values: soft, hard
+##
+podAffinityPreset: ""
+
+## Pod anti-affinity preset
+## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+## Allowed values: soft, hard
+##
+podAntiAffinityPreset: soft
+
+## Node affinity preset
+## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+## Allowed values: soft, hard
+##
+nodeAffinityPreset:
+  ## Node affinity type
+  ## Allowed values: soft, hard
+  type: ""
+  ## Node label key to match
+  ## E.g.
+  ## key: "kubernetes.io/e2e-az-name"
+  ##
+  key: ""
+  ## Node label values to match
+  ## E.g.
+  ## values:
+  ##   - e2e-az1
+  ##   - e2e-az2
+  ##
+  values: []
+
+## Affinity for pod assignment
+## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
+##
+affinity: {}
+
+## Node labels for pod assignment
+## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+##
+nodeSelector: {}
+
+## Tolerations for pod assignment
+## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+##
+tolerations: []
+
+## Annotations for external-dns pods
+##
+podAnnotations: {}
+
+## Additional labels for the pod(s).
+##
+podLabels: {}
+
+## Pod priority class name
+##
+priorityClassName: ""
+
+## Annotations for the secret
+##
+secretAnnotations: {}
+
+## Options for the source type "crd"
+##
+crd:
+  ## Install and use the integrated DNSEndpoint CRD
+  create: false
+  ## Change these to use an external DNSEndpoint CRD (E.g. from kubefed)
+  apiversion: ""
+  kind: ""
+
+## ServiceAccount parameters
+## https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+##
+serviceAccount:
+  create: true
+  ## Service Account for pods
+  ##
+  name: external-dns
+  ## Annotations for the Service Account
+  ##
+  annotations:
+%{ if iam_role != "" }
+    eks.amazonaws.com/role-arn: ${iam_role}
+%{ else }
+    {}
+%{ endif }
+
+## RBAC parameteres
+## https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+##
+rbac:
+  create: true
+  ## Deploys ClusterRole by Default
+  clusterRole: true
+  ## RBAC API version
+  ##
+  apiVersion: v1
+  ## Podsecuritypolicy
+  ##
+  pspEnabled: false
+
+## Kubernetes Security Context
+## https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+## Example:
+## securityContext:
+##   allowPrivilegeEscalation: false
+##   readOnlyRootFilesystem: true
+##   capabilities:
+##     drop: ["ALL"]
+##
+securityContext: {}
+podSecurityContext:
+  fsGroup: 1001
+  runAsUser: 1001
+  # runAsNonRoot: true
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources: {}
+#  limits:
+#    cpu: 50m
+#    memory: 50Mi
+#  requests:
+#    memory: 50Mi
+#    cpu: 10m
+
+## Configure extra volumes
+extraVolumes: []
+
+## Configure extra volumeMounts
+extraVolumeMounts: []
+
+## Prometheus Exporter / Metrics
+##
+metrics:
+  enabled: ${prometheus_enabled}
+  # Metrics exporter pod Annotation and Labels
+  #
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "7979"
+
+  ## Prometheus Operator ServiceMonitor configuration
+  ##
+  serviceMonitor:
+    enabled: ${prometheus_enabled}
+    ## Namespace in which Prometheus is running
+    ##
+    namespace: prometheus
+
+    ## Interval at which metrics should be scraped.
+    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+    ##
+    # interval: 10s
+
+    ## Timeout after which the scrape is ended
+    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+    ##
+    # scrapeTimeout: 10s
+
+    ## ServiceMonitor selector labels
+    ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
+    ##
+    selector:
+      release: prometheus
+    #   prometheus: my-prometheus

@@ -1,0 +1,14 @@
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry and imagePullSecrets
+##
+## API service parameters
+##
+apiService:
+  ## Specifies whether the v1beta1.metrics.k8s.io API service should be created
+  ## This should not be necessary in k8s version >= 1.8, but depends on vendors and cloud providers.
+  ##
+  create: true
+
+## Container command (using container default if not set)
+command: ["metrics-server","--kubelet-insecure-tls","--kubelet-preferred-address-types=InternalIP"]

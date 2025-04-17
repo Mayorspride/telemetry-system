@@ -1,0 +1,91 @@
+replicaCount: 9
+
+image:
+  repository: 123456789123.dkr.ecr.us-east-1.amazonaws.com/telemetry-service-producer
+  pullPolicy: IfNotPresent
+  tag: latest
+
+imagePullSecrets:
+  - name: awsecr-cred
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: NodePort
+  port: 3000
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 3000
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: 3000
+
+extraEnvs: {}
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: telemetry-service-producer.test-assignment.com
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/load-balancer-attributes: "idle_timeout.timeout_seconds=3600"
+    alb.ingress.kubernetes.io/group.name: "prod-external"
+  hosts:
+    - host: telemetry-service-producer.test-assignment.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              port:
+                number: 5000
+  tls:
+    - hosts:
+      - telemetry-service-producer.test-assignment.com
+      secretName: telemetry-service-producer
+
+certificate:
+  enabled: true
+  serviceName: telemetry-service-producer.test-assignment.com
+  secretName: telemetry-service-producer
+
+externalSecrets:
+  enabled: true
+  secrets:
+    - refreshInterval: 6m
+      secretStoreRef:
+        name: global-secret-store-aws-ssm
+        kind: ClusterSecretStore
+      data: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 21
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  requests:
+    memory: "96Mi"
+    cpu: "192m"
+  limits:
+    memory: "128Mi"
+    cpu: "256m"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
