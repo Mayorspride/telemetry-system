@@ -66,9 +66,9 @@ externalSecrets:
       data: {}
 
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 21
+  enabled: true
+  minReplicas: 9
+  maxReplicas: 20
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
