@@ -68,9 +68,9 @@ externalSecrets:
             key: /development/frontend-mysql-database-uri
 
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 21
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
