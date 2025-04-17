@@ -1,2 +1,2 @@
 # helm-charts
-Helm charts for our applications.\
+Helm charts for all three applications
