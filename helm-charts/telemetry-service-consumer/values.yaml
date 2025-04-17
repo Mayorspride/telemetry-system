@@ -26,7 +26,7 @@ readinessProbe:
 extraEnvs: {}
 
 ingress:
-  enabled: false
+  enabled: true
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     external-dns.alpha.kubernetes.io/hostname: telemetry-service-consumer.test-assignment.com
@@ -68,9 +68,9 @@ externalSecrets:
             key: /development/telemetry-service-consumer-mysql-database-uri
 
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 21
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
