@@ -2,7 +2,7 @@ apiVersion: v2
 name: command-service
 description: A Helm chart for Kubernetes
 maintainers:
-  - email: mayowa@gmail.com
+  - email: mayorspride@gmail.com
     name: TT&C
 type: application
 version: 0.1.0
